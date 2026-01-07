@@ -1,4 +1,8 @@
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 interface BankingOperations {
     void deposit(double amount);
@@ -73,13 +77,13 @@ class BOB extends Bank implements BankingOperations {
         System.out.println("Balance: " + balance);
     }
 
-    public void deposit(double amount) {
+    public synchronized void deposit(double amount) {
         balance += amount;
         System.out.println("Deposited Amount: " + amount);
         System.out.println("New Balance: " + balance);
     }
 
-    public void withdraw(double amount) throws BankingException {
+    public synchronized void withdraw(double amount) throws BankingException {
         if (amount <= 0) {
             throw new BankingException("Invalid withdrawal amount. Value should more than 0.");
         }
@@ -99,7 +103,7 @@ class BOB extends Bank implements BankingOperations {
         System.out.println("Current Interest Rate: " + interestRate + "%");
     }
 
-    public void loan(int loanAmount, int tenure) {
+    public synchronized void loan(int loanAmount, int tenure) {
 
         try {
             if (loanAmount <= 0 || tenure <= 0) {
@@ -136,7 +140,7 @@ class BOB extends Bank implements BankingOperations {
         System.out.printf("Total Interest Paid: %.2f%n", (emiAmount * months - loanAmount));
     }
 
-    public void loanPayment(double amount) {
+    public synchronized void loanPayment(double amount) {
         if (amount <= 0) {
             System.out.println("Invalid payment amount. Please provide a positive value.");
             return;
@@ -191,6 +195,7 @@ class BankingNew {
         // int balance=sc.nextInt();
 
         List<BOB> accounts = new ArrayList<>();
+        ExecutorService executor = Executors.newFixedThreadPool(5);
 
         // BOB b1=new BOB(name,accNum,balance);
         // b1.accountCreation();
@@ -220,10 +225,10 @@ class BankingNew {
                         int searchAccount1 = sc.nextInt();
                         System.out.println("Enter amount to deposit: ");
                         double depAmount = sc.nextDouble();
-                        BOB findAccount = findAccount(accounts, searchAccount1);
                         BOB accountToDeposit = findAccount(accounts, searchAccount1);
                         if (accountToDeposit != null) {
-                            accountToDeposit.deposit(depAmount);
+                            Future<?> future = executor.submit(() -> accountToDeposit.deposit(depAmount));
+                            future.get(); 
                         } else {
                             System.out.println("Account not found.");
                         }
@@ -236,7 +241,14 @@ class BankingNew {
                         double withAmount = sc.nextDouble();
                         BOB accountToWithdraw = findAccount(accounts, searchAccount2);
                         if (accountToWithdraw != null) {
-                            accountToWithdraw.withdraw(withAmount);
+                            Future<?> future = executor.submit(() -> {
+                                try {
+                                    accountToWithdraw.withdraw(withAmount);
+                                } catch (BankingException e) {
+                                    System.out.println(e.getMessage());
+                                }
+                            });
+                            future.get();
                         } else {
                             System.out.println("Account not found.");
                         }
@@ -274,7 +286,8 @@ class BankingNew {
 
                        BOB accountToLoan = findAccount(accounts, searchAccount5);
                         if (accountToLoan != null) {
-                            accountToLoan.loan(loanAmount, tenure);
+                            Future<?> future = executor.submit(() -> accountToLoan.loan(loanAmount, tenure));
+                            future.get();
                         } else {
                             System.out.println("Account not found.");
                         }
@@ -296,7 +309,8 @@ class BankingNew {
                         double paymentAmount = sc.nextDouble();
                        BOB accountToPayment = findAccount(accounts, searchAccount6);
                         if (accountToPayment != null) {
-                            accountToPayment.loanPayment(paymentAmount);
+                            executor.submit(() -> accountToPayment.loanPayment(paymentAmount));
+                            
                         } else {
                             System.out.println("Account not found.");
                         }
@@ -315,7 +329,6 @@ class BankingNew {
 
                     case 9:
                         sc.nextLine();
-                        System.out.println("sc:" + sc);
                         System.out.println("Enter Account Holder Name: ");
                         String newName = sc.nextLine();
                         System.out.println("Enter Account Number: ");
@@ -336,6 +349,10 @@ class BankingNew {
                 }
 
             } while (choice != 0);
+        } catch (InterruptedException e) {
+            System.out.println("Operation was interrupted.");
+        } catch (ExecutionException e) {
+            System.out.println("An error occurred during the operation: " + e.getCause().getMessage());
         }
 
         // b1.display();
