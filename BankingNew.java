@@ -347,6 +347,13 @@ class BankingNew {
                         int newAccNum = sc.nextInt();
                         System.out.println("Enter Initial Balance: ");
                         int newBalance = sc.nextInt();
+
+                        BOB existingAccount = findAccount(accounts, newAccNum);
+                        if (existingAccount != null) {
+                            System.out.println("Account with this number already exists.");
+                            break;
+                        }
+                        
                         BOB newAccount = new BOB(newName, newAccNum, newBalance);
                         newAccount.accountCreation();
                         accounts.add(newAccount);
