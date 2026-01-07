@@ -78,8 +78,14 @@ class BOB extends Bank implements BankingOperations {
     }
 
     public synchronized void deposit(double amount) {
+        System.out.println("Depositing Amount....Please wait...");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+           System.out.println("Deposit operation interrupted.");
+        }
         balance += amount;
-        System.out.println("Deposited Amount: " + amount);
+        System.out.println("Amount Deposited : " + amount);
         System.out.println("New Balance: " + balance);
     }
 
@@ -89,6 +95,12 @@ class BOB extends Bank implements BankingOperations {
         }
         if (amount > balance) {
             throw new BankingException("Insufficient balance. Please provide a valid amount.");
+        }
+        System.out.println("Withdrawing Amount....Please wait...");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            System.out.println("Withdraw operation interrupted.");
         }
         balance -= amount;
         System.out.println("Withdrawn Amount: " + amount);
