@@ -1,4 +1,4 @@
-package bankingapp.src.exceptions.interfaces;
+package bankingapp.src.interfaces;
 import bankingapp.src.exceptions.BankingException;
 
 public interface BankingOperations {

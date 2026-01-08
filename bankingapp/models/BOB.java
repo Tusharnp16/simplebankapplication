@@ -1,28 +1,40 @@
 package bankingapp.src.models;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import bankingapp.src.exceptions.BankingException;
 import bankingapp.src.interfaces.BankingOperations;
 
-class BOB extends Bank implements BankingOperations {
+public class BOB extends Bank implements BankingOperations {
     private final static String bankName = "Bank of Baroda";
     private final static String branchName = "Iscon branch";
     private static int nextAccountNumber = 1001;
     private String accountHolderName;
     private String accountNumber;
-    private int balance;
+    private float balance;
     private int loanAmount;
     private int tenure;
     private double interestRate = 9.5;
     private double monthlyRate;
     private int months;
     private double emiAmount;
+    private List<Transaction> history=new ArrayList<>();
+
+
+    /// colours
+    public static final String RESET = "\u001B[0m";
+    public static final String GREEN = "\u001B[32m";
+    public static final String RED = "\u001B[31m";
+    public static final String YELLOW = "\u001B[33m";
+    public static final String BLUE = "\u001B[34m";
+
     Random rand = new Random();
 
     int ifscCode = rand.nextInt(9000, 9999);
 
-    BOB(String accountHolderName, int balance) {
+    public BOB(String accountHolderName, int balance) {
         this.accountHolderName = accountHolderName;
         this.balance = balance;
         this.accountNumber = accounNumberGenerator();
@@ -36,7 +48,7 @@ class BOB extends Bank implements BankingOperations {
         return accNumber;
     }
 
-    void accountCreation() {
+    public void accountCreation() {
         super.accountCreation();
         System.out.println("Account created successfully for " + accountHolderName);
         displayAccountDetails();
@@ -52,15 +64,16 @@ class BOB extends Bank implements BankingOperations {
     }
 
     public synchronized void deposit(double amount) {
-        System.out.println("Depositing Amount....Please wait...");
+        printBlue("Depositing Amount....Please wait...");
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             System.out.println("Deposit operation interrupted.");
         }
         balance += amount;
-        System.out.println("Amount Deposited : " + amount);
-        System.out.println("New Balance: " + balance);
+        printGreen( "Amount Deposited : " + amount);
+        printYellow("New Balance: " + balance);
+        addTransactionHistory(amount,"DEPOSIT",accountNumber);
     }
 
     public synchronized void withdraw(double amount) throws BankingException {
@@ -70,19 +83,24 @@ class BOB extends Bank implements BankingOperations {
         if (amount > balance) {
             throw new BankingException("Insufficient balance. Please provide a valid amount.");
         }
-        System.out.println("Withdrawing Amount....Please wait...");
+        printBlue("Withdrawing Amount....Please wait...");
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             System.out.println("Withdraw operation interrupted.");
         }
         balance -= amount;
-        System.out.println("Withdrawn Amount: " + amount);
-        System.out.println("New Balance: " + balance);
+        printGreen("Withdrawn Amount: " + amount);
+        printYellow("New Balance: " + balance);
+        addTransactionHistory(amount,"WITHDRAWL",accountNumber);
     }
 
     public void checkBalance() {
-        System.out.println("Current Balance: " + balance);
+        printRed("Current Balance: " + balance);
+    }
+
+    public int getBalance(){
+        return (int) balance;
     }
 
     public void checkInterestRate() {
@@ -105,6 +123,7 @@ class BOB extends Bank implements BankingOperations {
         System.out.println("Loan Amount Requested: " + loanAmount);
         System.out.println("Loan Tenure (years): " + tenure);
         System.out.println("Interest Rate: " + interestRate + "%");
+        addTransactionHistory(loanAmount,"LOAN",accountNumber);
     }
 
     public void calculateEMI() {
@@ -143,9 +162,44 @@ class BOB extends Bank implements BankingOperations {
 
         loanAmount -= amount;
         System.out.println("Payment of " + amount + " made towards loan. Remaining loan amount: " + loanAmount);
+        addTransactionHistory(amount,"LOAN PAYMENT",accountNumber);
+    }
+
+    private void addTransactionHistory(double amount,String type,String description){
+        Transaction trans=new Transaction(type,amount,description);
+        history.add(trans);
+    }
+
+    public void checkTransactionHistory(){
+        if(history.isEmpty()){
+            System.out.println("History Not Found");
+        }else{
+            System.out.println("-------Transaction History----------");
+            for(Transaction t : history){
+                t.display();
+            }
+        }
+
     }
 
     public String getAccountNumber() {
         return accountNumber;
     }
+
+    public static void printGreen(String msg) {
+        System.out.println(GREEN + msg + RESET);
+    }
+
+    public static void printRed(String msg) {
+        System.out.println(RED + msg + RESET);
+    }
+
+    public static void printYellow(String msg) {
+        System.out.println(YELLOW + msg + RESET);
+    }
+
+    public static void printBlue(String msg) {
+        System.out.println(BLUE + msg + RESET);
+    }
+
 }
