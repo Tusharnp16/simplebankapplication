@@ -85,7 +85,7 @@ User selects operations such as:
 0Exit
 
 Clone the Repository
-git clone https://github.com/your-username/simplebankapplication.git
+git clone https://github.com/Tusharnp16/simplebankapplication.git
 
 🤝 Contributing
 Contributions are welcome!
